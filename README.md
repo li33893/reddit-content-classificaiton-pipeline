@@ -1,5 +1,5 @@
 # Reddit Content Classification Pipeline
-Python pipeline for Reddit data collection, filtering, and content classification support
+Screening, coding, validation, and analysis workflow for Reddit-based research data.
 
 ## Overview
 This repository contains the code-side workflow for a research project on how Reddit users describe turning to AI for mental health-related support.
