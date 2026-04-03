@@ -1,5 +1,6 @@
 # Reddit Content Classification Pipeline
 Python pipeline for Reddit data collection, filtering, and content classification support
+
 ## Overview
 This repository contains the code-side workflow for a research project on how Reddit users describe turning to AI for mental health-related support.
 
@@ -52,7 +53,7 @@ The workflow is relevant to AI Quality and Trust & Safety work because it combin
 
 The broader research project examines how users describe turning to AI for mental health-related support in ways that often involve ambiguity, boundary cases, and overlapping categories.
 
-These issues are also relevant to AI safety and governance because they show that evaluating AI-related content is not only a matter of surface meaning, but also of how support, risk, and legitimacy are interpreted in context.
+These issues are also relevant to AI safety and governance because they show that evaluating AI-related content is not only a matter of surface meaning, but also of how support, risk, and legitimacy are interpreted in social context.
 
 ## Skills Demonstrated
 
