@@ -42,6 +42,8 @@ These capabilities are directly relevant to:
 ## Repository Structure
 
 ```
+├── requirements.txt             # Python dependencies
+├── collect.py                   # Stage 0: data collection and keyword filtering
 ├── screening_prompt.py          # Stage 1: LLM relevance screening
 ├── agreement_check.py           # Stage 2: human–LLM agreement check
 ├── data_cleaning.py             # Stage 3: filtering, dedup, stratified sampling
@@ -49,7 +51,8 @@ These capabilities are directly relevant to:
 ├── rickwood_validation.py       # Stage 5: coding validation and disagreement analysis
 ├── batch_coding.py              # Stage 6: full-corpus batch processing
 ├── descriptive_stats.py         # Stage 7: descriptive statistics
-├── requirements.txt             # Python dependencies
+├── spot_check_sample.py         # Stage 8: held-out sample draw
+├── spot_check_validate.py       # Stage 9: held-out agreement validation
 └── README.md
 ```
 
