@@ -1,75 +1,82 @@
-# Reddit Content Classification Pipeline
-Screening, coding, validation, and analysis workflow for Reddit-based research data.
+# AI-Mediated Mental Health Content: Screening, Coding, and Validation Workflow
+
+A structured, multi-stage pipeline for screening, classifying, validating, and analysing Reddit posts about AI use in mental health contexts.
 
 ## Overview
-This repository contains the code-side workflow for a research project on how Reddit users describe turning to AI for mental health-related support.
 
-The workflow covers multiple stages of dataset preparation and review, including LLM-based screening, agreement checking between model and human labels, data cleaning and stratified sampling, Rickwood-dimension coding, validation of LLM-assisted coding, batch coding, and descriptive statistics.
+This repository contains the technical workflow for a research project examining how Reddit users describe turning to AI for mental health-related support.
 
-While the broader project also involved coding framework design and detailed coding manual development, this repository focuses on the technical workflow used to support screening, coding, validation, and downstream analysis.
+The pipeline processes approximately 2,000 posts through seven stages: LLM-based relevance screening, human–LLM agreement verification, data cleaning and stratified sampling, multi-dimensional content coding, coding validation, batch processing, and descriptive analysis.
 
-## Workflow Stages
-
-This repository supports a multi-stage workflow for screening, coding, validating, and analyzing Reddit posts related to AI-mediated mental health support.
-
-1. **Screening**  
-   Initial relevance screening, exclusion-oriented filtering, and risk-related flagging.
-
-2. **Agreement Checking**  
-   Comparison between model-generated labels and human judgment on sampled cases.
-
-3. **Data Cleaning and Sampling**  
-   Filtering, deduplication, and preparation of structured datasets for downstream coding.
-
-4. **Rickwood-Dimension Coding**  
-   Batch coding of retained posts across key analytic dimensions.
-
-5. **Validation and Review**  
-   Review of LLM-assisted coding outputs, disagreement checking, and rule refinement.
-
-6. **Batch Processing and Output Generation**  
-   Large-scale coding runs, export handling, and structured output generation.
-
-7. **Descriptive Analysis**  
-   Summary statistics and basic cross-tabulation for coded outputs.
-
-## Repository Structure
-
-- `screening_prompt.py` – supports relevance screening, exclusion checks, and risk-related flagging
-- `agreement_check.py` – compares model-generated labels with human judgment on sampled cases
-- `data_cleaning.py` – handles filtering, deduplication, and sampling for downstream coding
-- `rickwood_coding.py` – supports coding across the main analytic dimensions
-- `rickwood_validation.py` – validates LLM-assisted coding against reviewed labels
-- `batch_coding.py` – runs large-scale coding workflows and manages structured outputs
-- `descriptive_stats.py` – generates summary statistics and basic cross-tabulations
+The broader research project also involved classification framework design, detailed coding manual development, exclusion and decision rule specification, and interpretive discourse analysis — work that is not contained in this repository but informed the design of every stage documented here.
 
 ## Why This Project Matters
 
-This project demonstrates practical experience in building and supporting a structured screening, coding, and validation workflow for ambiguous content.
+This workflow addresses a problem shared across AI evaluation, content policy, and AI governance: **how to systematically classify and assess AI-related content that is ambiguous, context-dependent, and resistant to simple categorisation.**
 
-The workflow is relevant to AI Quality and Trust & Safety work because it combines classification support, human–AI comparison, review consistency, and decision-rule refinement.
+The pipeline demonstrates:
 
-## Research Relevance
+- **Evaluation framework design** — building a multi-dimensional classification system for content where categories overlap and boundary cases are frequent
+- **Human–AI comparison methodology** — establishing and validating the reliability of LLM-assisted coding against human judgment (Cohen's κ ≥ 0.80)
+- **Decision rule development for ambiguous cases** — iterative refinement of classification guidelines through structured disagreement analysis
+- **Scalable quality assurance** — designing a process that maintains consistency across 2,000+ items while preserving sensitivity to edge cases
 
-The broader research project examines how users describe turning to AI for mental health-related support in ways that often involve ambiguity, boundary cases, and overlapping categories.
+These capabilities are directly relevant to:
 
-These issues are also relevant to AI safety and governance because they show that evaluating AI-related content is not only a matter of surface meaning, but also of how support, risk, and legitimacy are interpreted in social context.
+- **AI policy and governance** — the project produces empirical evidence on how AI safety mechanisms (e.g., disclaimers) function in practice, with direct implications for regulatory frameworks such as Korea's AI Basic Act
+- **AI evaluation and quality assurance** — the workflow operationalises the full cycle of evaluation standard design → pilot validation → batch deployment → quality verification
+- **Content classification at scale** — the pipeline handles the core challenge of classifying content where meaning depends on social context, not surface features alone
 
-## Skills Demonstrated
+## Workflow Stages
 
-- Python-based workflow development
-- structured data filtering and preparation
-- batch coding support
-- LLM-assisted content classification
-- human review and validation
-- disagreement analysis and calibration support
-- decision-rule refinement for ambiguous cases
-- descriptive statistics and basic cross-tabulation
+| Stage | Script | What It Does |
+|-------|--------|-------------|
+| 1. Screening | `screening_prompt.py` | LLM-based relevance screening with three parallel tasks: relevance judgment, risk-level classification, and psychosis-symptom flagging |
+| 2. Agreement | `agreement_check.py` | Human–LLM agreement validation using Cohen's κ and Gwet's AC1 (addresses prevalence paradox under skewed distributions) |
+| 3. Cleaning | `data_cleaning.py` | Filtering, deduplication, and proportional stratified sampling across subreddit communities |
+| 4. Coding | `rickwood_coding.py` | Multi-dimensional content coding across three analytic dimensions (timeframe, help-seeking ecology, usage intent) |
+| 5. Validation | `rickwood_validation.py` | Per-dimension κ computation, confusion matrix analysis, and systematic disagreement export for prompt refinement |
+| 6. Batch Processing | `batch_coding.py` | Full-corpus coding with exponential backoff, checkpoint recovery, and cost estimation |
+| 7. Analysis | `descriptive_stats.py` | Frequency tables with Wilson score confidence intervals, cross-tabulations by community |
+
+## Repository Structure
+
+```
+├── screening_prompt.py          # Stage 1: LLM relevance screening
+├── agreement_check.py           # Stage 2: human–LLM agreement check
+├── data_cleaning.py             # Stage 3: filtering, dedup, stratified sampling
+├── rickwood_coding.py           # Stage 4: multi-dimensional content coding
+├── rickwood_validation.py       # Stage 5: coding validation and disagreement analysis
+├── batch_coding.py              # Stage 6: full-corpus batch processing
+├── descriptive_stats.py         # Stage 7: descriptive statistics
+├── requirements.txt             # Python dependencies
+└── README.md
+```
+
+## Key Design Decisions
+
+- **Dual reliability metrics**: Both Cohen's κ and Gwet's AC1 are reported because κ alone can underestimate agreement under skewed class distributions (the prevalence paradox). Reporting both distinguishes genuine disagreement from statistical artefact.
+- **Temperature = 0** for all coding stages to ensure reproducibility across batch runs.
+- **Stratified proportional sampling** preserves the ecological distribution of source communities rather than equalising them, reflecting the actual variation in where users discuss AI mental health use.
+- **Checkpoint recovery** in batch processing allows interrupted runs to resume without re-processing completed items.
+- **Wilson score intervals** for confidence intervals on proportions, more accurate than normal approximation for categories with small counts.
+
+## Research Context
+
+The broader research project examines how users construct their relationship with AI in mental health contexts — including how safety mechanisms like disclaimers function not as warnings but as authorisation devices in user discourse. This finding has direct implications for AI governance frameworks that rely on transparency and disclosure as protective measures.
+
+The coding framework adapts Rickwood and Thomas's (2012) help-seeking measurement framework for human–AI interaction, with usage intent categories drawn from Aghakhani and Rezapour (2026).
 
 ## How to Run
 
 1. Clone this repository.
-2. Install the required Python packages listed in `requirements.txt`.
-3. Prepare the necessary input files for the relevant workflow stage.
-4. Run the corresponding script depending on the task (e.g., screening, coding, validation, or descriptive analysis).
-5. Review the generated outputs in the designated output files or folders.
+2. Install dependencies: `pip install -r requirements.txt`
+3. Prepare input data for the relevant stage (see pipeline overview for file specifications).
+4. Run the corresponding script (e.g., `python screening_prompt.py`).
+5. Review outputs in the designated output files.
+
+**Note**: LLM-based stages require an Anthropic API key configured as an environment variable.
+
+## Scope
+
+This repository covers the **technical workflow implementation** for one component of a broader research project. The classification framework design, coding manual, discourse analysis, and theoretical interpretation are documented in the research paper, not in this repository.
