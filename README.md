@@ -17,7 +17,7 @@ This workflow addresses a problem shared across AI evaluation, content policy, a
 The pipeline demonstrates:
 
 - **Evaluation framework design** — building a multi-dimensional classification system for content where categories overlap and boundary cases are frequent
-- **Human–AI comparison methodology** — establishing and validating the reliability of LLM-assisted coding against human judgment (Cohen's κ ≥ 0.80)
+- **Human–AI comparison methodology** — Three-stage human–LLM validation workflow — relevance screening showed strong agreement (κ = 0.856, AC1 = 0.857); pilot coding reached substantial agreement across Timeframe (κ = 0.765), Source (κ = 0.684), and Type (κ = 0.682); and held-out validation confirmed generalization across Timeframe (κ = 0.790), Source (κ = 0.806), and Type (κ = 0.758)
 - **Decision rule development for ambiguous cases** — iterative refinement of classification guidelines through structured disagreement analysis
 - **Scalable quality assurance** — designing a process that maintains consistency across 2,000+ items while preserving sensitivity to edge cases
 
