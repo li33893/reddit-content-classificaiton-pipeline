@@ -6,7 +6,7 @@ A structured, multi-stage pipeline for screening, classifying, validating, and a
 
 This repository contains the technical workflow for a research project examining how Reddit users describe turning to AI for mental health-related support.
 
-The pipeline processes approximately 2,000 posts through seven stages: LLM-based relevance screening, human–LLM agreement verification, data cleaning and stratified sampling, multi-dimensional content coding, coding validation, batch processing, and descriptive analysis.
+The pipeline processes over 2,000 posts through nine stages: LLM-based relevance screening, human–LLM agreement verification, data cleaning and deduplication, multi-dimensional content coding, coding validation, batch processing, descriptive analysis, held-out sample drawing, and held-out agreement validation.
 
 The broader research project also involved classification framework design, detailed coding manual development, exclusion and decision rule specification, and interpretive discourse analysis — work that is not contained in this repository but informed the design of every stage documented here.
 
@@ -23,7 +23,7 @@ The pipeline demonstrates:
 
 These capabilities are directly relevant to:
 
-- **AI policy and governance** — the project produces empirical evidence on how AI safety mechanisms (e.g., disclaimers) function in practice, with direct implications for regulatory frameworks such as Korea's AI Basic Act
+- **AI policy and governance** — the project produces empirical evidence on how AI safety mechanisms (e.g., disclaimers) function in practice, with direct implications for regulatory frameworks governing AI transparency and disclosure
 - **AI evaluation and quality assurance** — the workflow operationalises the full cycle of evaluation standard design → pilot validation → batch deployment → quality verification
 - **Content classification at scale** — the pipeline handles the core challenge of classifying content where meaning depends on social context, not surface features alone
 
@@ -31,13 +31,16 @@ These capabilities are directly relevant to:
 
 | Stage | Script | What It Does |
 |-------|--------|-------------|
+| 0. Collection | `collect.py` | Data collection from Reddit via Arctic Shift API and keyword-based filtering |
 | 1. Screening | `screening_prompt.py` | LLM-based relevance screening with three parallel tasks: relevance judgment, risk-level classification, and psychosis-symptom flagging |
 | 2. Agreement | `agreement_check.py` | Human–LLM agreement validation using Cohen's κ and Gwet's AC1 (addresses prevalence paradox under skewed distributions) |
 | 3. Cleaning | `data_cleaning.py` | Filtering, deduplication, and proportional stratified sampling across subreddit communities |
-| 4. Coding | `rickwood_coding.py` | Multi-dimensional content coding across three analytic dimensions (timeframe, help-seeking ecology, usage intent) |
+| 4. Coding | `rickwood_coding.py` | Multi-dimensional content coding across three analytic dimensions (Timeframe, Source, Type) |
 | 5. Validation | `rickwood_validation.py` | Per-dimension κ computation, confusion matrix analysis, and systematic disagreement export for prompt refinement |
 | 6. Batch Processing | `batch_coding.py` | Full-corpus coding with exponential backoff, checkpoint recovery, and cost estimation |
 | 7. Analysis | `descriptive_stats.py` | Frequency tables with Wilson score confidence intervals, cross-tabulations by community |
+| 8. Spot-Check Sampling | `spot_check_sample.py` | Stratified held-out sample draw from batch-coded corpus, excluding pilot posts |
+| 9. Spot-Check Validation | `spot_check_validate.py` | Per-dimension κ on held-out sample to verify generalisation beyond pilot-optimised prompt |
 
 ## Repository Structure
 
