@@ -132,6 +132,103 @@ def word_count(text):
 # ─── Data Collection Function ─────────────────────────────────────────────────
 
 def fetch_posts_arcticshift(subreddit, after, before, limit=100000):
+    """
+    Paginate through and collect posts within a specified time range.
+
+    Fix for duplicate posts:
+    The original version paginated using created_utc + 1, but when multiple
+    posts exist within the same second, this caused an infinite loop —
+    the API kept returning the same batch of posts, and since seen_ids
+    deduplication left new_posts empty, it would break immediately,
+    causing all subsequent posts to be lost.
+
+    Fix:
+    - When new_posts is empty (stuck on the same timestamp), force +1 to
+      advance the cursor instead of breaking
+    - Only confirm the time period is fully collected when the API truly
+      returns an empty list
+    """
+    base_url = "https://arctic-shift.photon-reddit.com/api/posts/search"
+    all_posts = []
+    seen_ids = set()
+    current_after = after
+    max_seen_utc = after      # track the latest timestamp among collected posts
+    consecutive_empty = 0
+
+    while len(all_posts) < limit:
+        print(f"        Collected so far: {len(all_posts)} posts, requesting after={current_after}")
+
+        params = {
+            "subreddit": subreddit,
+            "after":     current_after,
+            "before":    before,
+            "limit":     100,
+            "sort":      "asc",
+        }
+
+        try:
+            resp = requests.get(base_url, params=params, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+        except requests.exceptions.HTTPError as e:
+            if resp.status_code == 422:
+                # 422: time window too large, shrink by half and retry
+                mid = (current_after + before) // 2
+                if mid <= current_after:
+                    print(f"      Time window cannot be shrunk further, skipping")
+                    break
+                print(f"      422 error, shrinking time window and retrying (before {before} → {mid})")
+                before = mid
+                continue
+            else:
+                print(f"      HTTP error (no retry): {e}")
+                break
+        except requests.exceptions.RequestException as e:
+            print(f"      Network request failed: {e}, waiting 5 seconds before retrying...")
+            time.sleep(5)
+            continue
+
+        posts = data.get("data", [])
+        print(f"        This request returned: {len(posts)} posts")
+
+        # API returned empty list → time period fully collected
+        if not posts:
+            consecutive_empty += 1
+            if consecutive_empty >= 3:
+                print(f"        3 consecutive empty responses, time period complete")
+                break
+            time.sleep(1)
+            continue
+
+        consecutive_empty = 0
+
+        new_posts = [p for p in posts if p["id"] not in seen_ids]
+
+        if new_posts:
+            for p in new_posts:
+                seen_ids.add(p["id"])
+            all_posts.extend(new_posts)
+            # update max_seen_utc with the latest timestamp in this batch
+            batch_max = max(int(p["created_utc"]) for p in new_posts)
+            if batch_max > max_seen_utc:
+                max_seen_utc = batch_max
+        else:
+            print(f"        All duplicates, skipping")
+
+        # Regardless of whether there are new posts, always start the next
+        # request from the last timestamp in this batch + 1
+        # This ensures current_after keeps advancing and never gets stuck
+        batch_max_utc = max(int(p["created_utc"]) for p in posts)
+        current_after = batch_max_utc + 1
+
+        # Fewer than 100 posts returned → truly the last page
+        if len(posts) < 100:
+            print(f"        Fewer than 100 posts returned, time period complete")
+            break
+
+        time.sleep(0.5)
+
+    return all_posts[:limit]
 
 
 # ─── Main Workflow ────────────────────────────────────────────────────────────
