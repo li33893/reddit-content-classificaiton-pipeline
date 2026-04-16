@@ -177,3 +177,14 @@ def screen_post(title: str, body: str) :
             {"role": "user", "content": post_text}
         ]
     }
+
+    resp = requests.post(
+        "https://api.anthropic.com/v1/messages",
+        headers = {
+            "Content-Type": "application/json",  # the data I'm sending is in JSON format
+            "x-api-key": "sk-ant-...",           # my authentication key, proves I have access to this API
+            "anthropic-version": "2023-06-01"    # which version of the API to use
+        },
+        json=payload,
+        timeout=60  # timeout=60 → throws an error if no response within 60 seconds (Claude is slower than regular APIs)
+    )
