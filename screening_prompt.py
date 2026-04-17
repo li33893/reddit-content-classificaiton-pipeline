@@ -178,13 +178,90 @@ def screen_post(title: str, body: str) :
         ]
     }
 
-    resp = requests.post(
-        "https://api.anthropic.com/v1/messages",
-        headers = {
-            "Content-Type": "application/json",  # the data I'm sending is in JSON format
-            "x-api-key": "sk-ant-...",           # my authentication key, proves I have access to this API
-            "anthropic-version": "2023-06-01"    # which version of the API to use
-        },
-        json=payload,
-        timeout=60  # timeout=60 → throws an error if no response within 60 seconds (Claude is slower than regular APIs)
-    )
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers = {
+                "Content-Type": "application/json",  # the data I'm sending is in JSON format
+                "x-api-key": "sk-ant-...",           # my authentication key, proves I have access to this API
+                "anthropic-version": "2023-06-01"    # which version of the API to use
+            },
+            json=payload,
+            timeout=60  # timeout=60 → throws an error if no response within 60 seconds (Claude is slower than regular APIs)
+        )
+
+    except Exception as e:
+            return {
+                "relevant": None,
+                "confidence": 0.0,
+                "reason": f"error: {e}",
+                "risk_level": None,
+                "risk_reason": f"error: {e}",
+                "psychosis": None,
+                "psychosis_reason": f"error: {e}"
+            }
+
+# ─── Main function ────────────────────────────────────────────────────────
+
+def main():
+    df = pd.read_csv(INPUT_FILE)
+    print(f"Loaded {len(df)} posts (from the keyword-filtered corpus)")
+
+    results = []
+    for i, row in df.iterrows():
+        if i % 50 == 0:
+            print(f"  Progress: {i}/{len(df)}")
+
+        result = screen_post(
+            title=str(row.get("title", "")),
+            body=str(row.get("body", ""))
+        )
+        results.append(result)
+        time.sleep(0.3)
+
+    df["llm_relevant"]         = [r.get("relevant")         for r in results]
+    df["llm_confidence"]       = [r.get("confidence")      for r in results]
+    df["llm_reason"]           = [r.get("reason")          for r in results]
+    df["llm_risk_level"]       = [r.get("risk_level")      for r in results]
+    df["llm_risk_reason"]      = [r.get("risk_reason")     for r in results]
+    df["llm_psychosis"]        = [r.get("psychosis")       for r in results]
+    df["llm_psychosis_reason"] = [r.get("psychosis_reason") for r in results]
+
+    df.to_csv(OUTPUT_FILE, index=False, encoding="utf-8-sig")
+
+    # ── Summary statistics ──
+    relevant = df[df["llm_relevant"] == True]
+    n_relevant = len(relevant)
+    n_total = len(df)
+
+    n_level1 = len(relevant[relevant["llm_risk_level"] == 1])
+    n_level2 = len(relevant[relevant["llm_risk_level"] == 2])
+    n_level3 = len(relevant[relevant["llm_risk_level"] == 3])
+    n_psychosis = len(relevant[relevant["llm_psychosis"] == True])
+
+    # Level 3 and psychosis cases may overlap, so count exclusions after deduplication
+    excluded_mask = (relevant["llm_risk_level"] == 3) | (relevant["llm_psychosis"] == True)
+    n_excluded_unique = excluded_mask.sum()
+    n_usable = n_relevant - n_excluded_unique
+
+    print(f"\n{'='*50}")
+    print(f"Screening complete")
+    print(f"{'='*50}")
+    print(f"Total posts: {n_total}")
+    print(f"Relevant posts: {n_relevant} ({n_relevant/n_total:.1%})")
+    print(f"")
+    print(f"Risk classification (within relevant posts):")
+    print(f"  Level 1 (no acute risk):      {n_level1} posts -> retained")
+    print(f"  Level 2 (ideation/history of self-harm): {n_level2} posts -> retained")
+    print(f"  Level 3 (behavioral intent):  {n_level3} posts -> excluded")
+    print(f"  Psychosis-like symptoms:      {n_psychosis} posts -> excluded")
+    print(f"")
+    print(f"Total excluded: {n_excluded_unique} posts")
+    print(f"Usable corpus: {n_usable} posts")
+    print(f"{'='*50}")
+    print(f"\nResults saved to {OUTPUT_FILE}")
+    print(f"\nNext step: run agreement_check.py to calculate human-LLM agreement")
+
+
+if __name__ == "__main__":
+    main()
